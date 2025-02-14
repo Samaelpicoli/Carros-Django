@@ -1,5 +1,6 @@
 import google.generativeai as genai
 from decouple import config
+from google.api_core.exceptions import ResourceExhausted
 
 genai.configure(api_key=config('API_KEY_GEMINI'))
 
@@ -26,12 +27,14 @@ def get_car_ai_bio(model: str, brand: str, year: int) -> str:
         Me mostre uma descrição de venda para o carro {brand} {model} {year}
         em apenas 250 caracteres. Fale coisas específicas desse modelo.
         """
-
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.GenerationConfig(
-            max_output_tokens=300,
-        ),
-    )
-    return response.text
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                max_output_tokens=300,
+            ),
+        )
+        return response.text
+    except ResourceExhausted:  # pragma: no cover
+        return 'Bio Gerada Automaticamente'  # pragma: no cover
